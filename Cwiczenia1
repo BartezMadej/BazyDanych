@@ -1,0 +1,165 @@
+Zad.1 
+CREATE DATABASE s298258;
+
+Zad.2 
+\c s298258
+CREATE SCHEMA firma;
+
+Zad.3
+CREATE ROLE ksiegowosc;
+GRANT CONNECT ON DATABASE s298258 TO ksiegowosc;
+GRANT USAGE ON SCHEMA firma TO ksiegowosc;
+GRANT SELECT ON ALL TABLES IN SCHEMA firma TO ksiegowosc;
+ALTER DEFAULT PRIVILEGES IN SCHEMA firma GRANT SELECT ON TABLES TO ksiegowosc;
+
+Zad.4
+CREATE TABLE firma.pracownicy (id_pracownika SERIAL, imie VARCHAR(40) NOT NULL, nazwisko VARCHAR(40) NOT NULL, adres VARCHAR(50) NOT NULL, telefon VARCHAR(9));
+CREATE TABLE firma.godziny (id_godziny SERIAL, data DATE, liczba_godzin FLOAT(1), id_pracownika INT NOT NULL);
+CREATE TABLE firma.pensja_stanowisko (id_pensji SERIAL, stanowisko VARCHAR(30) NOT NULL, kwota FLOAT(2) NOT NULL);
+CREATE TABLE firma.premia(id_premii SERIAL, rodzaj VARCHAR(30), kwota FLOAT(2) NOT NULL);
+CREATE TABLE firma.wynagrodzenie (id_wynagrodzenia SERIAL, data DATE, id_pracownika INT NOT NULL, id_godziny INT NOT NULL, id_pensji INT NOT NULL, id_premii INT NOT NULL);
+
+ALTER TABLE firma.pracownicy ADD PRIMARY KEY (id_pracownika);
+ALTER TABLE firma.godziny ADD PRIMARY KEY (id_godziny);
+ALTER TABLE firma.pensja_stanowisko ADD PRIMARY KEY (id_pensji);
+ALTER TABLE firma.premia ADD PRIMARY KEY (id_premii);
+ALTER TABLE firma.wynagrodzenie ADD PRIMARY KEY (id_wynagrodzenia);
+
+ALTER TABLE firma.godziny ADD CONSTRAINT fkey_pracownicy FOREIGN KEY(id_pracownika) REFERENCES firma.pracownicy (id_pracownika);
+ALTER TABLE firma.wynagrodzenie ADD CONSTRAINT fkey_pracownicy FOREIGN KEY (id_pracownika) REFERENCES firma.pracownicy (id_pracownika);
+ALTER TABLE firma.wynagrodzenie ADD CONSTRAINT fkey_godziny FOREIGN KEY (id_godziny) REFERENCES firma.godziny (id_godziny);
+ALTER TABLE firma.wynagrodzenie ADD CONSTRAINT fkey_pensja FOREIGN KEY (id_pensji) REFERENCES firma.pensja_stanowisko (id_pensji);
+ALTER TABLE firma.wynagrodzenie ADD CONSTRAINT fkey_premia FOREIGN KEY (id_premii) REFERENCES firma.premia (id_premii);
+
+CREATE INDEX idx_id_pracownika ON firma.godziny (id_pracownika);
+CREATE INDEX idx_id_pracownika_wynagrodzenie ON firma.wynagrodzenie (id_pracownika);
+CREATE INDEX idx_id_premii_wynagrodzenie ON firma.wynagrodzenie (id_premii);
+CREATE INDEX idx_id_pensji_wynagrodzenie ON firma.wynagrodzenie (id_pensji);
+
+COMMENT ON TABLE firma.pracownicy IS 'To jest tabela pracownikow';
+COMMENT ON TABLE firma.godziny IS 'To jest tabela godzin';
+COMMENT ON TABLE firma.pensja_stanowisko IS 'To jest tabela stanowisko w firmie';
+COMMENT ON TABLE firma.premia IS 'To jest tabela możliwych premii';
+COMMENT ON TABLE firma.wynagrodzenie IS 'To jest tabela ogólnych wynagrodzen';
+
+Zad.5
+ALTER TABLE firma.godziny ADD COLUMN miesiac INT;
+ALTER TABLE firma.godziny ADD COLUMN tydzien INT;
+ALTER TABLE firma.wynagrodzenie ALTER COLUMN data TYPE TEXT;
+
+INSERT INTO firma.pracownicy(id_pracownika, imie, nazwisko, adres, telefon)
+VALUES
+(1, 'Natakia', 'Kowalski', 'Krakow', '098678098'),
+(2, 'Karolina', 'Nowak', 'Warszawa', '987654321'),
+(3, 'Michal', 'Warner', 'Gliwice', '123123123'),
+(4, 'Rafał', 'Nowak', 'Krakow', '987456345'),
+(5, 'Andrzej', 'Kwiatkowska', 'Warszawa', '771234333'),
+(6, 'Wieslaw', 'Wolk', 'Krakow', '111234324'),
+(7, 'Joanna', 'Dul', 'Myslenice', '789786589'),
+(8, 'Michał', 'Baran', 'Krakow', '965000123'),
+(9, 'Kamila', 'Jarosz', 'Wieliczka', '987456432'),
+(10, 'Natalia', 'Kowal', 'Nowy Targ', '098142505');
+
+INSERT INTO firma.godziny(id_godziny, data, liczba_godzin, id_pracownika)
+VALUES
+(1, '2020-04-11', 160, 1),
+(2, '2020-05-12', 130, 2),
+(3, '2020-06-11', 180, 4),
+(4, '2020-04-13', 158, 3),
+(5, '2020-05-14', 120, 3),
+(6, '2020-06-21', 190, 4),
+(7, '2020-04-18', 145, 7),
+(8, '2020-05-18', 231, 9),
+(9, '2020-06-23', 143, 10),
+(10, '2020-03-01', 158, 8);
+UPDATE firma.godziny SET miesiac = DATE_PART('month', data);
+UPDATE firma.godziny SET tydzien = DATE_PART('week', data);
+
+INSERT INTO firma.premia(id_premii, rodzaj, kwota)
+VALUES
+(1, 'Kwartalna', 400),
+(2, 'Nadgodziny', 100),
+(3, 'Weekendowa', 300),
+(4, 'Za osiągnięcia', 500),
+(5, 'Brak', 0),
+(6, 'Świąteczna', 300),
+(7, 'Wakacyjna', 200),
+(8, 'Za zwiekszenie zyskow', 400),
+(9, 'Best worker', 300),
+(10, 'Roczna', 600);
+
+INSERT INTO firma.pensja_stanowisko(id_pensji, stanowisko, kwota)
+VALUES
+(1, 'Sekretarka', 2400),
+(2, 'Księgowa', 3000),
+(3, 'Dyrektor',4500),
+(4, 'Asystent', 2500),
+(5, 'Radca prawny', 8000),
+(6, 'Kierowca', 3000),
+(7, 'Sprzataczka', 2400),
+(8, 'Akwizytor', 3300),
+(9, 'Ochroniarz', 2800),
+(10, 'Menedzer', 4700);
+
+INSERT INTO firma.wynagrodzenie(id_wynagrodzenia, data, id_pracownika, id_godziny, id_pensji, id_premii)
+VALUES
+(1, '2020-06-10', 1, 1, 1, 2),
+(2, '2020-06-10', 2, 2, 3, 4),
+(3, '2020-06-10', 3, 3, 5, 6),
+(4, '2020-06-10', 4, 4, 8, 7),
+(5, '2020-06-10', 5, 5, 9, 10),
+(6, '2020-06-10', 6, 6, 2, 4),
+(7, '2020-07-10', 7, 7, 1, 3),
+(8, '2020-07-10', 8, 8, 9, 4),
+(9, '2020-07-10', 9, 9, 8, 5),
+(10, '2020-07-10', 10, 10, 8, 10);
+
+Zad.6
+SET search_path TO firma, public; //W celu skrócenia ścieżki do tabeli
+
+SELECT id_pracownika, nazwisko FROM pracownicy;
+SELECT pracownicy.id_pracownika, kwota FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON wynagrodzenie.id_pensji = pensja_stanowisko.id_pensji WHERE kwota > 1000;
+SELECT pracownicy.id_pracownika FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji JOIN premia ON wynagrodzenie.id_premii = premia.id_premii WHERE pensja_stanowisko.kwota > 2000 AND premia.rodzaj LIKE 'brak';
+SELECT * FROM pracownicy WHERE imie LIKE 'J%';
+SELECT * FROM pracownicy WHERE imie LIKE '%a' AND LOWER(nazwisko) LIKE '%n%';
+SELECT imie, nazwisko, liczba_godzin - 160 FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN godziny ON godziny.id_godziny = wynagrodzenie.id_godziny WHERE liczba_godzin > 160;
+SELECT pracownicy.imie, pracownicy.nazwisko FROM pracownicy JOIN wynagrodzenie ON wynagrodzenie.id_pracownika = pracownicy.id_pracownika JOIN pensja_stanowisko ON wynagrodzenie.id_pensji = pensja_stanowisko.id_pensji WHERE kwota >= 1500 AND kwota <= 3000;
+SELECT pracownicy.imie, pracownicy.nazwisko FROM pracownicy JOIN wynagrodzenie ON wynagrodzenie.id_pracownika = pracownicy.id_pracownika JOIN godziny ON godziny.id_godziny = wynagrodzenie.id_godziny JOIN premia ON premia.id_premii = wynagrodzenie.id_premii WHERE liczba_godzin > 160 AND rodzaj LIKE 'brak';
+
+Zad.7
+SELECT pracownicy.id_pracownika, pracownicy.imie, pracownicy.nazwisko, pensja_stanowisko.kwota FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji ORDER BY (pensja_stanowisko.kwota);
+SELECT pracownicy.imie, pracownicy.nazwisko, pensja_stanowisko.kwota, premia.kwota FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji JOIN premia ON premia.id_premii = wynagrodzenie.id_premii ORDER BY pensja_stanowisko.kwota ASC, premia.kwota DESC;
+SELECT pensja_stanowisko.stanowisko, COUNT(pracownicy.id_pracownika) FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji GROUP BY stanowisko;
+SELECT AVG(pensja_stanowisko.kwota), MIN(pensja_stanowisko.kwota), MAX(pensja_stanowisko.kwota) FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji WHERE stanowisko LIKE 'Dyrektor';
+SELECT SUM(pensja_stanowisko.kwota) FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji;
+SELECT pensja_stanowisko.stanowisko, SUM(pensja_stanowisko.kwota) FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji GROUP BY stanowisko;
+SELECT pensja_stanowisko.stanowisko, COUNT(pracownicy.id_pracownika) FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji JOIN premia ON premia.id_premii = wynagrodzenie.id_premii WHERE rodzaj NOT LIKE 'brak' GROUP BY stanowisko;
+DELETE FROM pracownicy WHERE pracownicy.id_pracownika IN (SELECT pracownicy.id_pracownika FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji WHERE kwota < 1200);
+
+Zad.8
+ALTER TABLE pracownicy ALTER COLUMN telefon TYPE VARCHAR(15); UPDATE pracownicy SET telefon = CONCAT('+48', telefon);
+UPDATE pracownicy SET telefon = CONCAT(LEFT(telefon, 3), ' ', SUBSTRING(telefon, 4, 3), '-', SUBSTRING(telefon, 7, 3), '-', RIGHT(telefon, 3));
+SELECT UPPER(nazwisko) FROM PRACOWNICY ORDER BY LENGTH(nazwisko) DESC LIMIT 1;
+SELECT MD5(CONCAT(pracownicy.id_pracownika, pracownicy.imie, pracownicy.nazwisko, pracownicy.adres, pracownicy.telefon, pensja_stanowisko.kwota)) FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji;
+
+Zad.9
+SELECT CONCAT('Pracownik ', pracownicy.imie,' ', pracownicy.nazwisko,', w dniu', wynagrodzenie.data, ' otrzymał pensję całkowitą na kwotę', pensja_stanowisko.kwota + premia.kwota, 'zł ', 'gdzie wynagrodzenie zasadnicze wynosilo ', pensja_stanowisko.kwota, 'zł, premia ', premia.kwota, ' nadgodziny:', (CASE WHEN godziny.liczba_godzin > 160 THEN 0 ELSE (160 - godziny.liczba_godzin) END), 'zł') FROM pracownicy JOIN wynagrodzenie ON pracownicy.id_pracownika = wynagrodzenie.id_pracownika JOIN premia ON premia.id_premii = wynagrodzenie.id_premii JOIN pensja_stanowisko ON pensja_stanowisko.id_pensji = wynagrodzenie.id_pensji JOIN godziny ON godziny.id_godziny = wynagrodzenie.id_godziny;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
