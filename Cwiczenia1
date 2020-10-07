@@ -13,11 +13,11 @@ GRANT SELECT ON ALL TABLES IN SCHEMA firma TO ksiegowosc;
 ALTER DEFAULT PRIVILEGES IN SCHEMA firma GRANT SELECT ON TABLES TO ksiegowosc;
 
 Zad.4
-CREATE TABLE firma.pracownicy (id_pracownika SERIAL, imie VARCHAR(40) NOT NULL, nazwisko VARCHAR(40) NOT NULL, adres VARCHAR(50) NOT NULL, telefon VARCHAR(9));
-CREATE TABLE firma.godziny (id_godziny SERIAL, data DATE, liczba_godzin FLOAT(1), id_pracownika INT NOT NULL);
-CREATE TABLE firma.pensja_stanowisko (id_pensji SERIAL, stanowisko VARCHAR(30) NOT NULL, kwota FLOAT(2) NOT NULL);
-CREATE TABLE firma.premia(id_premii SERIAL, rodzaj VARCHAR(30), kwota FLOAT(2) NOT NULL);
-CREATE TABLE firma.wynagrodzenie (id_wynagrodzenia SERIAL, data DATE, id_pracownika INT NOT NULL, id_godziny INT NOT NULL, id_pensji INT NOT NULL, id_premii INT NOT NULL);
+CREATE TABLE firma.pracownicy (id_pracownika INT NOT NULL, imie VARCHAR(40) NOT NULL, nazwisko VARCHAR(40) NOT NULL, adres VARCHAR(50) NOT NULL, telefon VARCHAR(9));
+CREATE TABLE firma.godziny (id_godziny INT NOT NULL, data DATE, liczba_godzin FLOAT(1), id_pracownika INT NOT NULL);
+CREATE TABLE firma.pensja_stanowisko (id_pensji INT NOT NULL, stanowisko VARCHAR(30) NOT NULL, kwota FLOAT(2) NOT NULL);
+CREATE TABLE firma.premia(id_premii INT NOT NULL, rodzaj VARCHAR(30), kwota FLOAT(2) NOT NULL);
+CREATE TABLE firma.wynagrodzenie (id_wynagrodzenia INT NOT NULL, data DATE, id_pracownika INT NOT NULL, id_godziny INT NOT NULL, id_pensji INT NOT NULL, id_premii INT NOT NULL);
 
 ALTER TABLE firma.pracownicy ADD PRIMARY KEY (id_pracownika);
 ALTER TABLE firma.godziny ADD PRIMARY KEY (id_godziny);
