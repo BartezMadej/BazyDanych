@@ -1,0 +1,180 @@
+Zad.2
+CREATE DATABASE s298258cw2;
+\c s298258cw2;
+CREATE SCHEMA sklep;
+
+Zad.5
+SET search_path TO sklep, public; // Opuszczenie nazwy schematu, przy odwołaniu do tabeli
+cp s298258DB.sql /var/lib/postgresql/
+\i s298258DB.sql 
+
+Zad.6
+INSERT INTO producenci(id_producenta, nazwa_producenta, mail, telefon)
+VALUES
+(1, 'Pepsi', 'pepsi@pepsi.com', '753215654'),
+(2, 'Audi', 'audi@vw.de', '987654231'),
+(3, 'BWM', 'bwm@gmail.com', '654132008'),
+(4, 'Lays', 'lays@gmail.com', '798645132'),
+(5, 'Coca-Cola', 'coca@cola.com', '987987987'),
+(6, 'Cisowianka', 'cisowniaka@wee.pl', '322745897'),
+(7, 'Vls', 'vls@vls.com', '654789132'),
+(8, 'Temo', 'temp@gmail.com', '654987321'),
+(9, 'The Coca-Cola Company', 'coca@cola.com', '654123123'),
+(10, 'ASD', 'ASD@wp.pl', '654987666');
+
+INSERT INTO produkty(id_produktu, nazwa_produktu, cena, id_producenta)
+VALUES
+(1, 'Pepsi', 2.00, 1),
+(2, 'Lays', 5.00, 10),
+(3, 'Lion', 1.50, 8),
+(11, 'Cappucino', 3.10, 6),
+(4, 'CocaCola', 2.50, 1),
+(5, 'Tiguan', 180000.00, 2),
+(6, 'AudiA4', 8000.00, 2),
+(7, 'BMWe46', 10000.00, 3),
+(8, 'Tee', 4.99, 3),
+(9, 'Cos', 4.99, 4),
+(10, 'Cisowianka', 1.80, 4);
+
+INSERT INTO zamowienia(id_zamowienia, ilosc, data, id_produktu)
+VALUES
+(1,  760,  '2020-03-12',  1),
+(2,  123,  '2020-02-12',  1),
+(3,  320,  '2020-03-12',  9),
+(4,  710,  '2020-04-12',  9),
+(5,  450,  '2020-05-12',  1),
+(6,  360,  '2020-03-12',  2),
+(7,  423,  '2020-02-12',  2),
+(8,  520,  '2020-03-22',  2),
+(9,  210,  '2020-04-12',  3),
+(10,  450,  '2020-05-02',  3),
+(11,  260,  '2020-03-02',  4),
+(12, 923,  '2020-02-12',  5),
+(13,  420,  '2020-03-02',  5),
+(14,  110,  '2020-04-02',  4),
+(15,  250,  '2020-05-22',  4),
+(16,  760,  '2020-03-22',  6),
+(17,  123,  '2020-02-22',  6),
+(18,  320,  '2020-03-22',  7),
+(19,  210,  '2020-04-22',  8),
+(20,  250,  '2020-05-22',  9);
+
+Zad.7
+pg_dump s298258 > s298258Backup.sql
+Zad.8
+DROP DATABASE s298258;
+Zad.9
+CREATE DATABASE s298258_backup;
+psql -d s298258_backup < s298258Backup.sql 
+Zad.10
+ALTER DATABASE s298258_backup RENAME TO s298258;
+
+Zad.11
+a) SELECT  CONCAT('Producent: ',producenci.nazwa_producenta, ', liczba zamowien: ', SUM(zamowienia.ilosc), ', wartosc zamowienia: ', SUM(zamowienia.ilosc * produkty.cena)) FROM zamowienia JOIN produkty ON zamowienia.id_produktu = produkty.id_produktu JOIN producenci ON produkty.id_producenta = producenci.id_producenta GROUP BY (producenci.id_producenta);
+b)SELECT CONCAT('Produkt: ', produkty.nazwa_produktu, ', liczba zamowien: ', COUNT(zamowienia.id_zamowienia)) FROM zamowienia RIGHT JOIN produkty ON produkty.id_produktu = zamowienia.id_produktu GROUP BY (produkty.nazwa_produktu);
+c)SELECT * FROM zamowienia NATURAL JOIN produkty;
+e)SELECT * FROM zamowienia WHERE DATE_PART('mont', data) = 1;
+f)SELECT COUNT(id_zamowienia) as Ilosc_zamowień, DATE_PART('dow', data) as numer_dnia FROM zamowienia GROUP BY (numer_dnia);
+g)SELECT produkty.nazwa_produktu, COUNT(zamowienia.id_zamowienia) AS ilosc_zamowien FROM zamowienia RIGHT JOIN produkty ON zamowienia.id_produktu = produkty.id_produktu GROUP BY (produkty.id_produktu) ORDER BY ilosc_zamowien DESC;
+
+Zad.12
+a)SELECT CONCAT('Produkt ', UPPER(produkty.nazwa_produktu), ', ktorego producentem jest ', LOWER(producenci.nazwa_producenta), ', zamowiono ', COUNT(zamowienia.id_zamowienia), ' razy.') AS opis FROM zamowienia RIGHT JOIN produkty ON zamowienia.id_produktu = produkty.id_produktu JOIN producenci ON produkty.id_producenta = producenci.id_producenta GROUP BY nazwa_produktu, nazwa_producenta ORDER BY COUNT(id_zamowienia) DESC;
+b)SELECT zamowienia.*, SUM(cena*ilosc) FROM zamowienia JOIN produkty ON zamowienia.id_produktu = produkty.id_produktu GROUP BY (zamowienia.id_zamowienia, produkty.id_produktu) ORDER BY SUM(ilosc*cena) DESC LIMIT (SELECT COUNT(*) FROM zamowienia) - 3;
+c)CREATE TABLE sklep.klienci(id_klienta INT PRIMARY KEY, email VARCHAR(30) NOT NULL, telefon VARCHAR(15) NOT NULL);
+d)ALTER TABLE zamowienia ADD COLUMN id_klienta INT REFERENCES klienci(id_klienta);
+e)
+INSERT INTO klienci(id_klienta, email, telefon)
+VALUES
+(1, 'first@temp.pl', '465798132'),
+(2, 'second@ads.pl', '987654321'),
+(3, 'third@cos.pl', '321123565'),
+(4, 'fourth@wp.pl', '123321123'),
+(5, 'fifth@gmail.pl', '123321123');
+
+UPDATE zamowienia SET id_klienta = 3 WHERE id_zamowienia IN (1, 2, 3, 4, 5);
+UPDATE zamowienia SET id_klienta = 2 WHERE id_zamowienia IN (6, 7, 8, 9, 10);
+UPDATE zamowienia SET id_klienta = 1 WHERE id_zamowienia IN (11, 12, 13, 14, 15);
+UPDATE zamowienia SET id_klienta = 4 WHERE id_zamowienia IN (15, 16, 17, 18, 19, 20);
+
+SELECT klienci.*, produkty.nazwa_produktu, zamowienia.ilosc, (zamowienia.ilosc*produkty.cena) AS wartosc_zamowienia FROM zamowienia RIGHT JOIN klienci ON zamowienia.id_klienta = klienci.id_klienta JOIN produkty ON zamowienia.id_produktu = produkty.id_produktu;
+f)
+SELECT CONCAT('NAJCZESCIEJ ZAMAWIAJACY: ', klienci.*,', wartosc zamowien : ', SUM(zamowienia.ilosc*produkty.cena)) FROM zamowienia RIGHT JOIN klienci ON zamowienia.id_klienta = klienci.id_klienta JOIN produkty ON zamowienia.id_produktu = produkty.id_produktu GROUP BY klienci.id_klienta ORDER BY COUNT(zamowienia.id_zamowienia) DESC LIMIT 1;
+
+SELECT CONCAT('NAJRZADZIEJ ZAMAWIAJACY ', klienci.*, ', wartosc zamowien : ', SUM(zamowienia.ilosc*produkty.cena)) FROM zamowienia RIGHT JOIN klienci ON zamowienia.id_klienta = klienci.id_klienta JOIN produkty ON zamowienia.id_produktu = produkty.id_produktu GROUP BY klienci.id_klienta ORDER BY COUNT(zamowienia.id_zamowienia) ASC LIMIT 1;
+g)
+DELETE FROM produkty WHERE id_produktu IN (SELECT zamowienia.id_produktu FROM zamowienia JOIN produkty ON zamowienia.id_produktu = produkty.id_produktu GROUP BY (zamowienia.id_produktu) HAVING COUNT(id_zamowienia) = 0);
+
+Zad.13
+a)CREATE TABLE sklep.numer (liczba INT CHECK (liczba > -10000 AND liczba <10000));
+b)CREATE SEQUENCE liczba_seq INCREMENT 5 START 100 MINVALUE 0 MAXVALUE 125 CYCLE;
+c)
+INSERT INTO numer(liczba) VALUES(nextval('liczba_seq')),
+			(nextval('liczba_seq')),
+			(nextval('liczba_seq')),
+			(nextval('liczba_seq')),
+			(nextval('liczba_seq')),
+			(nextval('liczba_seq')),
+			(nextval('liczba_seq'));
+d)ALTER SEQUENCE liczba_seq INCREMENT 6;
+e)
+SELECT currval('liczba_seq');
+SELECT nextval('liczba_seq');
+f)DROP SEQUENCE liczba_seq;
+
+Zad.14
+a)SELECT * FROM pg_catalog.pg_user;
+b)
+CREATE USER Superuser298258 WITH SUPERUSER PASSWORD 'pass';
+CREATE USER guest298258 PASSWORD 'pass';
+GRANT CONNECT ON DATABASE s298258cw2 TO guest298258;
+GRANT USAGE ON SCHEMA sklep To guest298258;
+GRANT SELECT ON ALL TABLES IN SCHEMA sklep TO guest298258;
+SELECT * FROM pg_catalog.pg_user;
+c)
+ALTER USER Superuser298258 RENAME TO student;
+ALTER USER student WITH NOSUPERUSER;
+GRANT SELECT ON ALL TABLES IN SCHEMA sklep TO student;
+
+Zad.15
+a)
+BEGIN;
+	UPDATE produkty SET cena = cena + 10;
+COMMIT;
+b)
+BEGIN;
+	UPDATE produkty SET cena = cena + cena*0.1 WHERE id_produktu = 3;
+	SAVEPOINT S1;
+	UPDATE zamowienia SET liczba_sztuk = 1.25*ilosc;
+	SAVEPOINT S2;
+	DELETE FROM klienci WHERE id_klienta IN (SELECT klienci.id_klienta FROM klienci JOIN zamowienia ON klienci.id_klienta = 	  zamowienia.id_klienta JOIN produkty ON produkty.id_produktu = zamowienia.id_produktu GROUP BY (klienci.id_klienta) ORDER BY 	SUM(produkty.cena*zamowienia.ilosc) DESC LIMIT 1);
+	ROLLBACK TO S1;
+	ROLLBACK TO S2;
+	ROLLBACK;
+COMMIT;
+c)
+CREATE OR REPLACE FUNCTION stakeholders()
+RETURNS TABLE (retval text) AS
+$func$
+BEGIN
+	RETURN QUERY
+	SELECT
+	CONCAT( produkty.nazwa_produktu, ':', (COUNT(zamowienia.id_produktu) / (SELECT COUNT(id_zamowienia) FROM zamowienia)* 100), '%', ' wszystkich zamówień')
+	FROM
+	produkty INNER JOIN zamowienia ON produkty.id_produktu = zamowienia.id_produktu
+	GROUP BY 
+	produkty.nazwa_produktu;
+END
+$func$ LANGUAGE plpgsql;
+
+
+
+
+
+
+
+
+
+
+
+
+
