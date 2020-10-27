@@ -1,0 +1,20 @@
+Zad.4
+CREATE TABLE tableB AS SELECT popp.* FROM popp, majrivers GROUP BY(popp.gid) HAVING popp.f_codedesc = 'Building'
+							   AND MIN(ST_Distance(popp.geom, majrivers.geom)) < 100000;
+Zad.5
+CREATE TABLE airportsNew (name VARCHAR(80), geom geometry, elev NUMERIC);
+INSERT INTO airportsNew (name, geom, elev) SELECT name, geom, elev FROM airports; //Mo¿na zast¹piæ CREATE TABLE AS SELECT
+
+a) SELECT * FROM airportsNew WHERE ST_X(geom) = (SELECT MAX(ST_X(geom)) FROM airportsNew) OR
+				   ST_X(geom) = (SELECT MIN(ST_X(geom)) FROM airportsNew);
+b)
+INSERT INTO airportsNew VALUES('airportB',
+ST_LineInterpolatePoints(
+ST_MakeLine((SELECT geom FROM airportsNew WHERE ST_X(geom) = (SELECT MAX(ST_X(geom)) FROM airportsNew)),
+	    (SELECT geom FROM airportsNew WHERE ST_X(geom) = (SELECT MIN(ST_X(geom)) FROM airportsNew))), 0.5, false), 123);
+
+Zad.6
+SELECT ST_Area(ST_Buffer(ST_ShortestLine((SELECT geom FROM lakes WHERE names = 'Iliamna Lake'),
+					  (SELECT geom FROM airportsNew WHERE name = 'AMBLER')),999));
+Zad.7
+?
