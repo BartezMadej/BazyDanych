@@ -3,7 +3,7 @@ CREATE TABLE tableB AS SELECT popp.* FROM popp, majrivers GROUP BY(popp.gid) HAV
 							   AND MIN(ST_Distance(popp.geom, majrivers.geom)) < 100000;
 Zad.5
 CREATE TABLE airportsNew (name VARCHAR(80), geom geometry, elev NUMERIC);
-INSERT INTO airportsNew (name, geom, elev) SELECT name, geom, elev FROM airports; //Mo¿na zast¹piæ CREATE TABLE AS SELECT
+INSERT INTO airportsNew (name, geom, elev) SELECT name, geom, elev FROM airports; //MoÂ¿na zastÂ¹piÃ¦ CREATE TABLE AS SELECT
 
 a) SELECT * FROM airportsNew WHERE ST_X(geom) = (SELECT MAX(ST_X(geom)) FROM airportsNew) OR
 				   ST_X(geom) = (SELECT MIN(ST_X(geom)) FROM airportsNew);
@@ -17,4 +17,6 @@ Zad.6
 SELECT ST_Area(ST_Buffer(ST_ShortestLine((SELECT geom FROM lakes WHERE names = 'Iliamna Lake'),
 					  (SELECT geom FROM airportsNew WHERE name = 'AMBLER')),999));
 Zad.7
-?
+SELECT SUM(ST_Area(ST_Intersection(ts.geom, tdsp.var))) AS areas, vegdesc FROM trees ts, 
+	(SELECT ST_Union(sp.geom, td.geom) as var FROM tundra td, swamp sp) tdsp 
+WHERE ST_IsValid(ts.geom) AND ST_Intersects(ts.geom, tdsp.var) GROUP BY(ts.vegdesc);
